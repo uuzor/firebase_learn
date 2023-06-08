@@ -4,13 +4,17 @@ import { Auth } from './components/auth'
 import { signInWithPopup , signOut} from "firebase/auth"
 import { auth, googleProvider } from './config/firebase'
 import { db } from "./config/firebase"
-import { getDocs , collection} from "firebase/firestore"
+import { getDocs , collection, addDoc } from "firebase/firestore"
+import { storage } from './config/firebase'
+import {ref, uploadBytes} from "firebase/storage"
 
 function App() {
   const [count, setCount] = useState(0)
   const [message, setMessage] = useState("")
   const [movie, setMovie] = useState([]);
+  const [Files, setFiles] = useState([]);
   const movieCollectionRef = collection(db, "movies")
+
   useEffect(()=> {
     getMovie()
   }, [])
@@ -25,6 +29,14 @@ function App() {
       }
   }
 
+  const onSubmitMovie = async () => {
+    try {
+      await addDoc(movieCollectionRef, {title: "hey", date: "2001", premium: true, amount: 200})
+      getMovie();
+    } catch (error) {
+      console.log(error)
+    }
+  }
   const signInWithGoogle = async () => {
     try {
       await signInWithPopup(auth, googleProvider)
@@ -42,13 +54,25 @@ function App() {
         console.error(e)
     }
 }
+  const upLoadFile = async () => {
+const files = ref(storage, `mini/${File.name}`)
+ try {
+  await uploadBytes(files, File)
+ } catch (error) {
   
+ }
+  }
   return (
     <>
       <div>
         {!auth?.currentUser?.email && <Auth />
         }
-
+        <input type="checkbox" />
+        <input type="text" placeholder='title'/>
+        <input type="file" onChange={(e)=>setFiles(e.target.files)}/>
+        <input type='submit' onClick={upLoadFile}/>
+        <input type="text" placeholder='date' />
+        <input type='submit' onClick={onSubmitMovie}/>
         <div>{auth?.currentUser?.email}</div>
         
         <button onClick={signInWithGoogle}>Google</button>
